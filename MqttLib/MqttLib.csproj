@@ -1,0 +1,118 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{8714BC76-4234-4406-AECF-4D28DFF98A1F}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>MqttLib</RootNamespace>
+    <AssemblyName>MqttLib</AssemblyName>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>MqttLib_Key.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;WITH_BLUETOOTH</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="InTheHand.Net.Personal, Version=2.2.0.0, Culture=neutral, PublicKeyToken=ea38caa273134499, processorArchitecture=MSIL" />
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CompleteArgs.cs" />
+    <Compile Include="IMqttConnectDisconnect.cs" />
+    <Compile Include="IMqttPublisher.cs" />
+    <Compile Include="IMqttShared.cs" />
+    <Compile Include="IMqttSharedSubscriber.cs" />
+    <Compile Include="IMqttSubscriber.cs" />
+    <Compile Include="IPersistence.cs" />
+    <Compile Include="Core\Messages\IPersistentMessage.cs" />
+    <Compile Include="Core\Messages\MessageFactory.cs" />
+    <Compile Include="Core\Messages\MqttAcknowledgeMessage.cs" />
+    <Compile Include="Core\Messages\MqttConnackMessage.cs" />
+    <Compile Include="Core\Messages\MqttConnectMessage.cs" />
+    <Compile Include="Core\Messages\MqttDisconnectMessage.cs" />
+    <Compile Include="Core\Messages\MqttMessage.cs" />
+    <Compile Include="Core\Messages\MqttMessageReceivedEventArgs.cs" />
+    <Compile Include="Core\Messages\MqttPingReqMessage.cs" />
+    <Compile Include="Core\Messages\MqttPingRespMessage.cs" />
+    <Compile Include="Core\Messages\MqttPubackMessage.cs" />
+    <Compile Include="Core\Messages\MqttPubcompMessage.cs" />
+    <Compile Include="Core\Messages\MqttPublishMessage.cs" />
+    <Compile Include="Core\Messages\MqttPubrecMessage.cs" />
+    <Compile Include="Core\Messages\MqttPubrelMessage.cs" />
+    <Compile Include="Core\Messages\MqttSubackMessage.cs" />
+    <Compile Include="Core\Messages\MqttSubscribeMessage.cs" />
+    <Compile Include="Core\Messages\MqttUnsubackMessage.cs" />
+    <Compile Include="Core\Messages\MqttUnsubscribeMessage.cs" />
+    <Compile Include="Core\MQTTStreamExceptions.cs" />
+    <Compile Include="Core\NotConnectedException.cs" />
+    <Compile Include="Core\QoSManager.cs" />
+    <Compile Include="Core\StreamFactory.cs" />
+    <Compile Include="Core\StreamManager.cs" />
+    <Compile Include="Core\Subscription.cs" />
+    <Compile Include="IMqtt.cs" />
+    <Compile Include="Logger\FileLog.cs" />
+    <Compile Include="Logger\ILog.cs" />
+    <Compile Include="Logger\Log.cs" />
+    <Compile Include="Mqtt.cs" />
+    <Compile Include="MqttBroker.cs" />
+    <Compile Include="MqttBrokerUnavailableException.cs" />
+    <Compile Include="MqttClientFactory.cs" />
+    <Compile Include="MqttDelegates.cs" />
+    <Compile Include="MqttException.cs" />
+    <Compile Include="MqttNotConnectedException.cs" />
+    <Compile Include="MqttParcel.cs" />
+    <Compile Include="MqttPayload.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PublishArrivedArgs.cs" />
+    <Compile Include="QoS.cs" />
+    <Compile Include="MatchTree\Topic.cs" />
+    <Compile Include="MatchTree\TopicNode.cs" />
+    <Compile Include="MatchTree\TopicTree.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="MqttLib_Key.snk" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

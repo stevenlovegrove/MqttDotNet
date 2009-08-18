@@ -1,0 +1,13 @@
+This is the README file for the source archive of MqttDotNet, a .net
+implementation of the client half of the MQTT messaging protocol.
+
+Please visit:
+http://sourceforge.net/projects/mqttdotnet/
+http://www.doc.ic.ac.uk/~sl203/
+for information about MqttDotNet
+
+Visit:
+http://mqtt.org
+for information on the MQTT Messaging protocol.
+
+See the file LICENCE for the licence conditions.
