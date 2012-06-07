@@ -98,6 +98,8 @@ namespace MqttLib
                 case MessageType.PUBREC:
                     break;
                 case MessageType.PUBREL:
+                    MqttPubrelMessage pubrel = (MqttPubrelMessage)e.Message;
+                    OnPublished(new CompleteArgs(pubrel.AckID));
                     break;
                 case MessageType.SUBACK:
                     MqttSubackMessage m1 = (MqttSubackMessage)e.Message;
