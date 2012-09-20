@@ -37,7 +37,7 @@ namespace MqttLib.Core.Messages
                 case MessageType.SUBACK:
                     return new MqttSubackMessage(str, header);
                 case MessageType.UNSUBACK:
-                    return null;
+                    return new MqttUnsubackMessage(str, header);
                 case MessageType.PINGRESP:
                     return new MqttPingRespMessage(str, header);
                 case MessageType.UNSUBSCRIBE:

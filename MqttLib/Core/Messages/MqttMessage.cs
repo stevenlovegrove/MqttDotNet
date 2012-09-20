@@ -104,7 +104,7 @@ namespace MqttLib.Core.Messages
         {
             msgType = (MessageType)((header & 0xf0) >> 4);
             isDuplicate = (header & 0x08) != 0;
-            msgQos = (QoS)(header & 0x06);
+            msgQos = (QoS)((header & 0x06) >> 1);
             isRetained = (header & 0x01) != 0;
         }
 
