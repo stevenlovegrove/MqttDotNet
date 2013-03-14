@@ -17,6 +17,20 @@ namespace MqttLib.Core.Messages
         NotAuthorized           = 5
     }
 
+    internal class MqttConnackEventArgs : EventArgs
+    {
+        public MqttConnackEventArgs(MqttConnectionResponse connectionResponse)
+        {
+            ConnectionResponse = connectionResponse;
+        }
+
+        public MqttConnectionResponse ConnectionResponse
+        {
+            get;
+            private set;
+        }
+    }
+
     internal class MqttConnackMessage : MqttMessage
     {
         private MqttConnectionResponse _response;

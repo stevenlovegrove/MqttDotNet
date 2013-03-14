@@ -78,7 +78,11 @@ namespace MqttLib
             switch (e.Message.MsgType)
             {
                 case MessageType.CONNACK:
-                    OnConnected(new EventArgs());
+                    var connack = ((MqttConnackMessage)e.Message);
+                    if (connack.Response == MqttConnectionResponse.Accepted)
+                        OnConnected(new EventArgs());
+                    else
+                        OnConnectionLost(new MqttConnackEventArgs(connack.Response));
                     break;
                 case MessageType.DISCONNECT:
                     break;
