@@ -24,6 +24,8 @@ namespace MqttLib
         private TopicTree<PublishArrivedDelegate> topicTree = null;
 
         private string _clientID;
+        private string _username;
+        private string _password;
         private ushort _keepAlive = 30;
         private ushort messageID = 1;
         private Timer keepAliveTimer = null;
@@ -43,13 +45,15 @@ namespace MqttLib
           set { qosManager.ResendInterval = value; }
         }
 
-        public Mqtt(string connString, string clientID, IPersistence store)
+        public Mqtt(string connString, string clientID, string username, string password, IPersistence store)
         {
             _store = store;
             qosManager = new QoSManager(_store);
             manager = new StreamManager(connString, qosManager);
             qosManager.MessageReceived += new QoSManager.MessageReceivedDelegate(qosManager_MessageReceived);
             _clientID = clientID;
+            _username = username;
+            _password = password;
         }
 
         void tmrCallback(object args)
@@ -127,28 +131,28 @@ namespace MqttLib
         public void Connect()
         {
           DoConnect(new MqttConnectMessage(
-            _clientID, _keepAlive, false
+            _clientID, _username, _password, _keepAlive, false
           ));
         }
 
         public void Connect(string willTopic, QoS willQoS, MqttPayload willMsg, bool willRetain)
         {
           DoConnect(new MqttConnectMessage(
-            _clientID, _keepAlive, willTopic, willMsg.TrimmedBuffer, willQoS, willRetain, false
+            _clientID, _username, _password, _keepAlive, willTopic, willMsg.TrimmedBuffer, willQoS, willRetain, false
           ));
         }
 
         public void Connect( bool cleanStart )
         {
           DoConnect(new MqttConnectMessage(
-            _clientID, _keepAlive, cleanStart
+            _clientID, _username, _password, _keepAlive, cleanStart
           ));
         }
 
         public void Connect(string willTopic, QoS willQoS, MqttPayload willMsg, bool willRetain, bool cleanStart )
         {
           DoConnect(new MqttConnectMessage(
-            _clientID, _keepAlive, willTopic, willMsg.TrimmedBuffer, willQoS, willRetain, cleanStart
+            _clientID, _username, _password, _keepAlive, willTopic, willMsg.TrimmedBuffer, willQoS, willRetain, cleanStart
           ));
         }
 

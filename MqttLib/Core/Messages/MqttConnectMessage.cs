@@ -14,6 +14,12 @@ namespace MqttLib.Core.Messages
         private ushort _keepAlive;
         private byte[] _clientID;
 
+        private bool _containsUsername;
+        private string _username;
+
+        private bool _containsPassword;
+        private string _password;
+
         private byte _connectFlags;
         private bool _containsWill;
         private string _willTopic;
@@ -35,34 +41,49 @@ namespace MqttLib.Core.Messages
                 VERSION
             };
 
-        private void SetConnectVariableHeaderCommon(string clientID, ushort keepAlive)
+        private void SetConnectVariableHeaderCommon(string clientID, string username, string password, ushort keepAlive)
         {
           _keepAlive = keepAlive;
           _clientID = enc.GetBytes(clientID);
+          _containsUsername = !String.IsNullOrWhiteSpace(username);
+          _username = username;
+          _containsPassword = !String.IsNullOrWhiteSpace(password);
+          _password = password;
+
           base.variableHeaderLength = (
             protocolDesc.Length + //Length of the protocol description
             3 +                   //Connect Flags + Keep alive
             _clientID.Length +    // Length of the client ID string
             2                     // The length of the length of the clientID
           );
+
+          if (_containsUsername)
+              base.variableHeaderLength += _username.Length + 2;
+
+          if (_containsPassword)
+              base.variableHeaderLength += _password.Length + 2;
         }
 
-        public MqttConnectMessage(string clientID, ushort keepAlive, bool cleanStart)
+        public MqttConnectMessage(string clientID, string username, string password, ushort keepAlive, bool cleanStart)
           : base(MessageType.CONNECT)
         {
-          SetConnectVariableHeaderCommon(clientID, keepAlive);
+          SetConnectVariableHeaderCommon(clientID, username, password, keepAlive);
           _containsWill = false;
-          _connectFlags = (byte)(cleanStart ? 0x02:0) ;
+          _connectFlags = (byte)(
+              (cleanStart ? 0x02 : 0) |
+              (_containsPassword ? 0x40 : 0) |
+              (_containsUsername ? 0x80 : 0)
+              );
         }
 
         // TODO: Add a constructor containing WillTopic and WillMessage
         public MqttConnectMessage(
-          string clientID, ushort keepAlive,
+          string clientID, string username, string password, ushort keepAlive,
           string willTopic, byte[] willPayload,
           QoS willQos, bool willRetained, bool cleanStart
         ) : base(MessageType.CONNECT)
         {
-          SetConnectVariableHeaderCommon(clientID, keepAlive);
+          SetConnectVariableHeaderCommon(clientID, username, password, keepAlive);
 
           _containsWill = true;
           _willTopic = willTopic;
@@ -72,6 +93,8 @@ namespace MqttLib.Core.Messages
             0x04                      | // LWT enabled
             (willRetained ? 0x20 : 0) | // LWT is retained?
             (cleanStart ? 0x02 : 0)   | // Clean Start
+            (_containsPassword ? 0x40 : 0) |
+              (_containsUsername ? 0x80 : 0) |
             ((byte)willQos) << 3        // LWT QoS
           );
 
@@ -104,6 +127,14 @@ namespace MqttLib.Core.Messages
               // Write the will payload
               WriteToStream(str, (ushort)_willPayload.Length);
               str.Write(_willPayload, 0, _willPayload.Length);
+            }
+
+            if (_containsUsername)
+            {
+                WriteToStream(str, _username);
+
+                if (_containsPassword)
+                    WriteToStream(str, _password);
             }
 
         }
