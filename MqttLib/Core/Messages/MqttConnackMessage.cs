@@ -12,7 +12,9 @@ namespace MqttLib.Core.Messages
         Accepted                = 0,
         UnacceptableProtocol    = 1,
         IdentifierRejected      = 2,
-        BrokerUnavailable       = 3
+        BrokerUnavailable       = 3,
+        BadUsernameOrPassword   = 4,
+        NotAuthorized           = 5
     }
 
     internal class MqttConnackMessage : MqttMessage
