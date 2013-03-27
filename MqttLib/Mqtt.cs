@@ -24,6 +24,8 @@ namespace MqttLib
         private TopicTree<PublishArrivedDelegate> topicTree = null;
 
         private string _clientID;
+        private string _username;
+        private string _password;
         private ushort _keepAlive = 30;
         private ushort messageID = 1;
         private Timer keepAliveTimer = null;
@@ -34,36 +36,39 @@ namespace MqttLib
 
         public ushort KeepAliveInterval
         {
-          get { return _keepAlive; }
-          set { _keepAlive = value; }
+            get { return _keepAlive; }
+            set { _keepAlive = value; }
         }
 
-        public long ResendInterval {
-          get { return qosManager.ResendInterval; }
-          set { qosManager.ResendInterval = value; }
+        public long ResendInterval
+        {
+            get { return qosManager.ResendInterval; }
+            set { qosManager.ResendInterval = value; }
         }
 
-        public Mqtt(string connString, string clientID, IPersistence store)
+        public Mqtt(string connString, string clientID, string username, string password, IPersistence store)
         {
             _store = store;
             qosManager = new QoSManager(_store);
             manager = new StreamManager(connString, qosManager);
             qosManager.MessageReceived += new QoSManager.MessageReceivedDelegate(qosManager_MessageReceived);
             _clientID = clientID;
+            _username = username;
+            _password = password;
         }
 
         void tmrCallback(object args)
         {
-          try
-          {
-            manager.SendMessage(new MqttPingReqMessage());
-          }
-          catch (Exception e)
-          {
-            Log.Write(LogLevel.ERROR, e.ToString());
-            // We've probably lost a connection. The time will be cancelled when we are
-            // notified by the stream manager. In the mean time, just ignore the Exception.
-          }
+            try
+            {
+                manager.SendMessage(new MqttPingReqMessage());
+            }
+            catch (Exception e)
+            {
+                Log.Write(LogLevel.ERROR, e.ToString());
+                // We've probably lost a connection. The time will be cancelled when we are
+                // notified by the stream manager. In the mean time, just ignore the Exception.
+            }
         }
 
         void qosManager_MessageReceived(object sender, MqttMessageReceivedEventArgs e)
@@ -78,7 +83,11 @@ namespace MqttLib
             switch (e.Message.MsgType)
             {
                 case MessageType.CONNACK:
-                    OnConnected(new EventArgs());
+                    var connack = ((MqttConnackMessage)e.Message);
+                    if (connack.Response == MqttConnectionResponse.Accepted)
+                        OnConnected(new EventArgs());
+                    else
+                        OnConnectionLost(new MqttConnackEventArgs(connack.Response));
                     break;
                 case MessageType.DISCONNECT:
                     break;
@@ -122,30 +131,30 @@ namespace MqttLib
 
         public void Connect()
         {
-          DoConnect(new MqttConnectMessage(
-            _clientID, _keepAlive, false
-          ));
+            DoConnect(new MqttConnectMessage(
+              _clientID, _username, _password, _keepAlive, false
+            ));
         }
 
         public void Connect(string willTopic, QoS willQoS, MqttPayload willMsg, bool willRetain)
         {
-          DoConnect(new MqttConnectMessage(
-            _clientID, _keepAlive, willTopic, willMsg.TrimmedBuffer, willQoS, willRetain, false
-          ));
+            DoConnect(new MqttConnectMessage(
+              _clientID, _username, _password, _keepAlive, willTopic, willMsg.TrimmedBuffer, willQoS, willRetain, false
+            ));
         }
 
-        public void Connect( bool cleanStart )
+        public void Connect(bool cleanStart)
         {
-          DoConnect(new MqttConnectMessage(
-            _clientID, _keepAlive, cleanStart
-          ));
+            DoConnect(new MqttConnectMessage(
+              _clientID, _username, _password, _keepAlive, cleanStart
+            ));
         }
 
-        public void Connect(string willTopic, QoS willQoS, MqttPayload willMsg, bool willRetain, bool cleanStart )
+        public void Connect(string willTopic, QoS willQoS, MqttPayload willMsg, bool willRetain, bool cleanStart)
         {
-          DoConnect(new MqttConnectMessage(
-            _clientID, _keepAlive, willTopic, willMsg.TrimmedBuffer, willQoS, willRetain, cleanStart
-          ));
+            DoConnect(new MqttConnectMessage(
+              _clientID, _username, _password, _keepAlive, willTopic, willMsg.TrimmedBuffer, willQoS, willRetain, cleanStart
+            ));
         }
 
         private void DoConnect(MqttConnectMessage conmsg)
@@ -171,11 +180,11 @@ namespace MqttLib
             manager.SendMessage(new MqttDisconnectMessage());
             if (keepAliveTimer != null)
             {
-              keepAliveTimer.Dispose();
-              keepAliveTimer = null;
+                keepAliveTimer.Dispose();
+                keepAliveTimer = null;
             }
             manager.Disconnect();
-            
+
         }
 
         public int Publish(string topic, MqttPayload payload, QoS qos, bool retained)
@@ -194,7 +203,7 @@ namespace MqttLib
 
         public int Publish(MqttParcel parcel)
         {
-          return Publish(parcel.Topic, parcel.Payload, parcel.Qos, parcel.Retained);
+            return Publish(parcel.Topic, parcel.Payload, parcel.Qos, parcel.Retained);
         }
 
         public int Subscribe(Subscription[] subscriptions)
@@ -261,27 +270,27 @@ namespace MqttLib
 
         public void Subscribe(Subscription subscription, PublishArrivedDelegate subscriber)
         {
-          if (topicTree == null)
-          {
-            topicTree = new TopicTree<PublishArrivedDelegate>();
-          }
+            if (topicTree == null)
+            {
+                topicTree = new TopicTree<PublishArrivedDelegate>();
+            }
 
-          topicTree.Add( subscription.Topic, subscriber);
+            topicTree.Add(subscription.Topic, subscriber);
 
-          // TODO: Check if we're already subscribed.
-          Subscribe(subscription);
+            // TODO: Check if we're already subscribed.
+            Subscribe(subscription);
         }
 
         public void Unsubscribe(string topic, PublishArrivedDelegate subscriber)
         {
-          topicTree.Remove( topic, subscriber);
+            topicTree.Remove(topic, subscriber);
 
-          // TODO: Check if this is the last subscriber
-          Unsubscribe(new string[] { topic } );
+            // TODO: Check if this is the last subscriber
+            Unsubscribe(new string[] { topic });
         }
 
         #endregion
-      
+
         #region Event Raising functions
 
         protected void OnPublishArrived(MqttPublishMessage m)
@@ -293,11 +302,11 @@ namespace MqttLib
                 PublishArrivedArgs e = new PublishArrivedArgs(m.Topic, m.Payload, m.Retained, m.QualityOfService);
                 try
                 {
-                  accepted |= PublishArrived(this, e);
+                    accepted |= PublishArrived(this, e);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
-                  MqttLib.Logger.Log.Write(LogLevel.ERROR, "MqttLib: Uncaught exception from user delegate: " + ex.ToString());
+                    MqttLib.Logger.Log.Write(LogLevel.ERROR, "MqttLib: Uncaught exception from user delegate: " + ex.ToString());
                 }
             }
 
@@ -307,20 +316,20 @@ namespace MqttLib
                 List<PublishArrivedDelegate> subscribers = topicTree.CollectMatches(new Topic(m.Topic));
                 foreach (PublishArrivedDelegate pad in subscribers)
                 {
-                  try
-                  {
-                    accepted |= pad(this, e);
-                  }
-                  catch (Exception ex)
-                  {
-                    MqttLib.Logger.Log.Write(LogLevel.ERROR, "MqttLib: Uncaught exception from user delegate: " + ex.ToString());
-                  }
+                    try
+                    {
+                        accepted |= pad(this, e);
+                    }
+                    catch (Exception ex)
+                    {
+                        MqttLib.Logger.Log.Write(LogLevel.ERROR, "MqttLib: Uncaught exception from user delegate: " + ex.ToString());
+                    }
                 }
             }
 
             if (m.QualityOfService > QoS.BestEfforts)
             {
-              qosManager.PublishAccepted(m.MessageID, accepted);
+                qosManager.PublishAccepted(m.MessageID, accepted);
             }
 
         }
@@ -329,14 +338,14 @@ namespace MqttLib
         {
             if (Published != null)
             {
-              try
-              {
-                Published(this, e);
-              }
-              catch (Exception ex)
-              {
-                MqttLib.Logger.Log.Write(LogLevel.ERROR, "MqttLib: Uncaught exception from user delegate: " + ex.ToString());
-              }
+                try
+                {
+                    Published(this, e);
+                }
+                catch (Exception ex)
+                {
+                    MqttLib.Logger.Log.Write(LogLevel.ERROR, "MqttLib: Uncaught exception from user delegate: " + ex.ToString());
+                }
             }
         }
 
@@ -344,14 +353,14 @@ namespace MqttLib
         {
             if (Subscribed != null)
             {
-              try
-              {
-                Subscribed(this, e);
-              }
-              catch (Exception ex)
-              {
-                MqttLib.Logger.Log.Write(LogLevel.ERROR, "MqttLib: Uncaught exception from user delegate: " + ex.ToString());
-              }
+                try
+                {
+                    Subscribed(this, e);
+                }
+                catch (Exception ex)
+                {
+                    MqttLib.Logger.Log.Write(LogLevel.ERROR, "MqttLib: Uncaught exception from user delegate: " + ex.ToString());
+                }
             }
         }
 
@@ -359,49 +368,50 @@ namespace MqttLib
         {
             if (Unsubscribed != null)
             {
-              try {
-                Unsubscribed(this, e);
-              }
-              catch (Exception ex)
-              {
-                MqttLib.Logger.Log.Write(LogLevel.ERROR, "MqttLib: Uncaught exception from user delegate: " + ex.ToString());
-              }
+                try
+                {
+                    Unsubscribed(this, e);
+                }
+                catch (Exception ex)
+                {
+                    MqttLib.Logger.Log.Write(LogLevel.ERROR, "MqttLib: Uncaught exception from user delegate: " + ex.ToString());
+                }
             }
         }
 
         protected void OnConnectionLost(EventArgs e)
         {
-          if (keepAliveTimer != null)
-          {
-            keepAliveTimer.Dispose();
-            keepAliveTimer = null;
-          }
+            if (keepAliveTimer != null)
+            {
+                keepAliveTimer.Dispose();
+                keepAliveTimer = null;
+            }
 
-          if (ConnectionLost != null)
-          {
-            try
+            if (ConnectionLost != null)
             {
-              ConnectionLost(this, e);
+                try
+                {
+                    ConnectionLost(this, e);
+                }
+                catch (Exception ex)
+                {
+                    MqttLib.Logger.Log.Write(LogLevel.ERROR, "MqttLib: Uncaught exception from user delegate: " + ex.ToString());
+                }
             }
-            catch (Exception ex)
-            {
-              MqttLib.Logger.Log.Write(LogLevel.ERROR, "MqttLib: Uncaught exception from user delegate: " + ex.ToString());
-            }
-          }
         }
 
         protected void OnConnected(EventArgs e)
         {
             if (Connected != null)
             {
-              try
-              {
-                Connected(this, e);
-              }
-              catch (Exception ex)
-              {
-                MqttLib.Logger.Log.Write(LogLevel.ERROR, "MqttLib: Uncaught exception from user delegate: " + ex.ToString());
-              }
+                try
+                {
+                    Connected(this, e);
+                }
+                catch (Exception ex)
+                {
+                    MqttLib.Logger.Log.Write(LogLevel.ERROR, "MqttLib: Uncaught exception from user delegate: " + ex.ToString());
+                }
             }
         }
 
@@ -417,5 +427,5 @@ namespace MqttLib
             }
         }
 
-      }
+    }
 }

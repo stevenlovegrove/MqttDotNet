@@ -9,10 +9,26 @@ namespace MqttLib.Core.Messages
     /// </summary>
     internal enum MqttConnectionResponse : byte
     {
-        Accepted                = 0,
-        UnacceptableProtocol    = 1,
-        IdentifierRejected      = 2,
-        BrokerUnavailable       = 3
+        Accepted = 0,
+        UnacceptableProtocol = 1,
+        IdentifierRejected = 2,
+        BrokerUnavailable = 3,
+        BadUsernameOrPassword = 4,
+        NotAuthorized = 5
+    }
+
+    internal class MqttConnackEventArgs : EventArgs
+    {
+        public MqttConnackEventArgs(MqttConnectionResponse connectionResponse)
+        {
+            ConnectionResponse = connectionResponse;
+        }
+
+        public MqttConnectionResponse ConnectionResponse
+        {
+            get;
+            private set;
+        }
     }
 
     internal class MqttConnackMessage : MqttMessage
@@ -23,7 +39,8 @@ namespace MqttLib.Core.Messages
         /// Contruct a MqttConnackMessage from a given response
         /// </summary>
         /// <param name="response">Connection Repsonse</param>
-        public MqttConnackMessage(MqttConnectionResponse response) : base(MessageType.CONNACK, 2)
+        public MqttConnackMessage(MqttConnectionResponse response)
+            : base(MessageType.CONNACK, 2)
         {
             _response = response;
         }
@@ -33,7 +50,7 @@ namespace MqttLib.Core.Messages
         /// </summary>
         /// <param name="str"></param>
         /// <param name="header"></param>
-        public MqttConnackMessage(Stream str, byte header) : base(str, header) {}
+        public MqttConnackMessage(Stream str, byte header) : base(str, header) { }
 
         protected override void SendPayload(System.IO.Stream str)
         {
