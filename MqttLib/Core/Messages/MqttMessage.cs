@@ -159,6 +159,8 @@ namespace MqttLib.Core.Messages
 
         public void Serialise(Stream str)
         {
+			MemoryStream ms = new MemoryStream();
+
             // Write the fixed header to the stream
             byte header = (byte)((byte)msgType << 4);
             if (isDuplicate)
@@ -171,11 +173,12 @@ namespace MqttLib.Core.Messages
                 header |= 1;
             }
 
-            str.WriteByte(header);
+            ms.WriteByte(header);
             // Add the second byte of the fixed header (The variable header length)
-            EncodeVariableHeaderLength(str, variableHeaderLength);
+            EncodeVariableHeaderLength(ms, variableHeaderLength);
             // Write the payload to the stream
-            SendPayload(str);
+            SendPayload(ms);
+			ms.WriteTo(str);
         }
 
         /// <summary>
