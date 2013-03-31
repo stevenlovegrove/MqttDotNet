@@ -48,7 +48,7 @@
     <Reference Include="System.Net" />
     <Reference Include="mscorlib.extensions" />
     <Reference Include="WinPhone.SocketEx">
-      <HintPath>..\..\..\HW30WP\WinPhone.SocketEx\Bin\Debug\WinPhone.SocketEx.dll</HintPath>
+      <HintPath>lib\WinPhone.SocketEx.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
