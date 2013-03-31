@@ -38,7 +38,7 @@ namespace MqttLib
     {
         UTF8Encoding enc = new UTF8Encoding();
         _offset = 0;
-        _payload = enc.GetBytes(payload);
+        _payload = enc.GetBytes(payload) ?? new byte[0]; // might be null for string.empty
     }
 
     #endregion
@@ -48,19 +48,19 @@ namespace MqttLib
     /// <summary>
     /// Buffer containing message payload
     /// </summary>
-    public byte[] TrimmedBuffer
-    {
-      get
-      {
-        byte[] data = null;
-        if (_payload.Length - _offset > 0)
-        {
-          data = new byte[_payload.Length - _offset];
-          _payload.CopyTo(data, _offset);
-        }
-        return data;
-      }
-    }
+	 public byte[] TrimmedBuffer
+	 {
+		 get
+		 {
+			 if (_payload.Length - _offset > 0)
+			 {
+				 byte[] data = new byte[_payload.Length - _offset];
+				 _payload.CopyTo(data, _offset);
+				 return data;
+			 }
+			 return new byte[0];
+		 }
+	 }
 
     public override string ToString()
     {
