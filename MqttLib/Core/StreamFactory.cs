@@ -11,6 +11,10 @@ using InTheHand.Net.Sockets;
 using InTheHand.Net;
 #endif // WITH_BLUETOOTH
 
+#if WINDOWS_PHONE
+using SocketEx;
+#endif
+
 namespace MqttLib.Core
 {
     public class StreamFactory
@@ -101,8 +105,12 @@ namespace MqttLib.Core
             try
             {
                 tcpclnt.Connect(host, port);
+#if WINDOWS_PHONE
+					 return (NetworkStream)tcpclnt.GetStream();
+#else
                 return tcpclnt.GetStream();
-            }
+#endif
+				}
             catch (Exception e)
             {
                 throw e;
