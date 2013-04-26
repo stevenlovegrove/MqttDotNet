@@ -166,7 +166,7 @@ namespace MqttLib
                 manager.WaitForResponse();
                 TimerCallback callback = new TimerCallback(tmrCallback);
                 // TODO: Set Keep Alive interval and keepAlive time as property of client
-                int keepAliveInterval = 1000 * (_keepAlive / 3);
+                int keepAliveInterval = 1000 * _keepAlive;
                 keepAliveTimer = new Timer(callback, null, keepAliveInterval, keepAliveInterval);
             }
             catch (Exception e)
@@ -191,6 +191,12 @@ namespace MqttLib
         {
             if (manager.IsConnected)
             {
+                // Reset the PINGREQ timer as this publish will reset the server's counter
+                if (keepAliveTimer != null)
+                {
+                    int kmillis = 1000 * _keepAlive;
+                    keepAliveTimer.Change(kmillis, kmillis);
+                }
                 ushort messID = MessageID;
                 manager.SendMessage(new MqttPublishMessage(messID, topic, payload.TrimmedBuffer, qos, retained));
                 return messID;
