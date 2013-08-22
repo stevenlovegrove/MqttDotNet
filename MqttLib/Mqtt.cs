@@ -99,6 +99,8 @@ namespace MqttLib
                     OnPublished(new CompleteArgs(puback.AckID));
                     break;
                 case MessageType.PUBCOMP:
+                    var puback2 = (MqttPubcompMessage)e.Message;
+                    OnPublished(new CompleteArgs(puback2.AckID));
                     break;
                 case MessageType.PUBLISH:
                     MqttPublishMessage m = (MqttPublishMessage)e.Message;
