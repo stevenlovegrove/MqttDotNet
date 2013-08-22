@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using MqttLib.Core.Messages;
@@ -158,34 +160,35 @@ namespace MqttLib.Core
             }
         }
 
+        private List<MqttMessage> GetResendMessages(DateTime now)
+        {
+            lock (_messages)
+            {
+                return _messages.Values.Cast<MqttMessage>()
+                    .Where(x => (now - new DateTime(x.Timestamp)).TotalMilliseconds >= _resendInterval)
+                    .ToList(); // Force enumeration so we can release the lock
+            }
+        }
+
         private void MessageDaemon()
         {
             // NOTE: This function should be called in it's own thread
-
             while (_running)
             {
+                var now = DateTime.Now;
                 // Check if we should re-send some messages
-                lock (_messages)
+                foreach (var mess in GetResendMessages(now))
                 {
-                    DateTime now = DateTime.Now;
-
-                    foreach (MqttMessage mess in _messages.Values)
+                    mess.Timestamp = now.Ticks;
+                    mess.Duplicate = true;
+                    try
                     {
-                        TimeSpan ts = now - new DateTime(mess.Timestamp);
-                        if( ts.TotalMilliseconds >= _resendInterval )
-                        {
-                            mess.Timestamp = now.Ticks;
-                            mess.Duplicate = true;
-                            try
-                            {
-                              Log.Write( LogLevel.DEBUG, "Re-Sending - " + mess.MessageID);
-                              _strManager.SendMessage(mess);
-                            }
-                            catch (Exception e) {
-                              Log.Write(LogLevel.ERROR, e.ToString());
-                              // If we fail for some reason, we will try again another time automatically
-                            }
-                        }
+                      Log.Write( LogLevel.DEBUG, "Re-Sending - " + mess.MessageID);
+                      _strManager.SendMessage(mess);
+                    }
+                    catch (Exception e) {
+                      Log.Write(LogLevel.ERROR, e.ToString());
+                      // If we fail for some reason, we will try again another time automatically
                     }
                 }
                 Thread.Sleep(2000);
