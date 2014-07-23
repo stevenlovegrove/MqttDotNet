@@ -45,9 +45,9 @@ namespace MqttLib.Core.Messages
         {
             _keepAlive = keepAlive;
             _clientID = enc.GetBytes(clientID);
-            _containsUsername = !String.IsNullOrWhiteSpace(username);
+            _containsUsername = !(String.IsNullOrEmpty(username) || username.Trim().Length == 0);
             _username = username;
-            _containsPassword = !String.IsNullOrWhiteSpace(password);
+            _containsPassword = !(String.IsNullOrEmpty(password) || password.Trim().Length == 0);
             _password = password;
 
             base.variableHeaderLength = (
