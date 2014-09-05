@@ -46,7 +46,7 @@ namespace MqttLib
             set { qosManager.ResendInterval = value; }
         }
 
-        public Mqtt(string connString, string clientID, string username, string password, IPersistence store)
+        public Mqtt(string connString, string clientID, string username, string password, IPersistence store, bool enableLogging)
         {
             _store = store;
             qosManager = new QoSManager(_store);
@@ -55,6 +55,7 @@ namespace MqttLib
             _clientID = clientID;
             _username = username;
             _password = password;
+            Log.LoggingEnabled = enableLogging;
         }
 
         void tmrCallback(object args)

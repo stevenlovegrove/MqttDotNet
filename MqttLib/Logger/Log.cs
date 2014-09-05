@@ -8,6 +8,13 @@ namespace MqttLib.Logger
     {
       private static ILog _log = null;
 
+      public static bool LoggingEnabled { get; set; }
+
+      static Log()
+      {
+          LoggingEnabled = true;
+      }
+
       public static ILog CreateLog(string name)
       {
         if (_log == null) { _log = new FileLog(name); }
@@ -22,14 +29,20 @@ namespace MqttLib.Logger
 
       public static void Write(string message)
       {
+        if (LoggingEnabled)
+        {
           if (_log == null) { CreateLog("Unknown"); }
           _log.Write(message);
+        }
       }
 
       public static void Write(LogLevel level, string message)
       {
+        if (LoggingEnabled)
+        {
           if (_log == null) { CreateLog("Unknown"); }
           _log.Write(level, message);
+        }
       }
     }
 }
